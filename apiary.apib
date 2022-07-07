@@ -1,0 +1,158 @@
+FORMAT: 1A9
+HOST: https://sandbox.scurri.co.uk/locations/api/1.0.0/
+
+# Locations API
+
+The Locations API provides eCommerce sellers with a list of delivery
+locations available at checkout. This allows customers to delivery their
+package to a location convenient to them. 
+
+## HTTP Codes
+
+HTTP codes are used to differentiate between successful and failed
+responses. As per the HTTP standard: 20x codes are for successful
+requests, 40x codes for errors with validation or permissions, 50x
+codes for unexpected internal server errors.
+
+## Authentication
+
+All requests must be authenticated using [Basic
+Auth](https://en.wikipedia.org/wiki/Basic_access_authentication#Client_side).
+
+With Basic Auth, you have to send the username and password **base64-encoded**
+in the standard Basic manner, e.g.
+`Authorization: Basic YXBpdXNlcjphcGlwYXNzd29yZA==`.
+
+Here is some sample code in Python to generate the value of the header:
+
+```python3
+>>> import base64
+>>> username = b'apiuser'
+>>> password = b'apipassword'
+>>> base64.b64encode(username + b':' + password)
+b'YXBpdXNlcjphcGlwYXNzd29yZA=='
+```
+
+Failed requests will return a 401 HTTP code with `WWW-Authenticate: Basic` response header.
+
+## Request format
+
+All body payloads must be in JSON format, unless stated otherwise.
+
+As a result, the `Content-Type` header must be set to `application/json`.
+
+# Delivery Locations [/company/{company_slug}/{service_slug}/delivery/{?postcode,country,latitude,longitude,radius,limit}]
+
+## List Delivery Locations [GET]
+
+The result contains a list of the delivery locations available within their
+locality along with the opening hours and distance to the customer. 
+
++ Parameters
+    + company_slug: `api-test-company` (string, required) - The slug of your company in Scurri.
+    + service_slug: `royal-mail-tracked-24-tpn` (string, required) - The slug of the carrier service whose delivery locations are to be searched.
+    + postcode: `AB123TT` (string, optional) - The postcode being the epicentre of the search. Required if latitude/longitude are not specified.
+    + country: `GB` (string, optional) - The country of the postcode. Required along with postcode if latitude/longitude are not specified.
+    + latitude: `57.112` (string, optional) - The latitude of the epicentre of the search. Required along with longitude if postcode is not specified.
+    + longitude: `-2.094` (string, optional) - The longitude of the epicentre of the search. Required along with latitude if postcode is not specified.
+    + radius: `10` (string, optional) - The search radius in kilometers.
+    + limit: `10` (string, optional) - The maximum number of points returned.
+
++ Request List Delivery Locations (application/json)
+    + Headers
+
+            Authorization: Token 64420d5b8934b2cd8b3a4dacfc5df22c6353c817
+
++ Response 200 (application/json)
+    + Attributes (object)
+        + delivery_locations (array, fixed-type) - The list of delivery locations.
+            + (object)
+                + code (string) - The code/identifier of the delivery location.
+                + name (string) - The name of the delivery location.
+                + type (string) - The type of the delivery location.
+                + address (object) - The address of the delivery location.
+                    + address1 (string) - The first address line of the address.
+                    + address2 (string) - The second address line of the address.
+                    + address3 (string) - The third address line of the address.
+                    + city (string) - The city of the delivery location.
+                    + postcode (string) The postal code of the delivery location.
+                    + country (string) The country of the delivery location.
+                + coordinates (object) - The coordinates of the delivery location.
+                    + latitude (string) - The latitude of the delivery location.
+                    + longitude (string) - The longitude of the delivery location.
+                + distance (string) - The distance in kilometers to the delivery location.
+                + opening_hours (array, fixed-type) - The list of opening hour entries of the delivery location. Multiple entries per day are possible.
+                    + (object)
+                        + day_of_week: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday (enum) - The day of the week.
+                        + open_from (string) - The time that delivery location opens in 24 hour format.
+                        + open_to (string) - The time that delivery location closes in 24 hour format.
+                + carrier (object)
+                    + name (string) - The name of the carrier.
+                    + logo (string) - The URL of the carrier logo.
+
+    + Body
+
+            {
+                "delivery_locations": [
+                    {
+                        "code": "10",
+                        "name": "Altens Delivery Office",
+                        "type": "CSP",
+                        "address": {
+                            "address1": "Wellington Circle",
+                            "address2": "",
+                            "address3": "",
+                            "city": "Aberdeen",
+                            "state": "",
+                            "postcode": "AB12 3TT",
+                            "country": "GB"
+                        },
+                        "coordinates": {
+                            "latitude": "57.1113",
+                            "longitude": "-2.094"
+                        },
+                        "distance": "0",
+                        "opening_hours": [
+                            {
+                                "day_of_week": "Monday",
+                                "open_from": "08:00",
+                                "open_to": "14:00"
+                            },
+                            {
+                                "day_of_week": "Tuesday",
+                                "open_from": "08:00",
+                                "open_to": "19:00"
+                            },
+                            {
+                                "day_of_week": "Wednesday",
+                                "open_from": "08:00",
+                                "open_to": "19:00"
+                            },
+                            {
+                                "day_of_week": "Thursday",
+                                "open_from": "08:00",
+                                "open_to": "20:00"
+                            },
+                            {
+                                "day_of_week": "Friday",
+                                "open_from": "08:00",
+                                "open_to": "19:00"
+                            },
+                            {
+                                "day_of_week": "Saturday",
+                                "open_from": "08:00",
+                                "open_to": "17:00"
+                            },
+                            {
+                                "day_of_week": "Sunday",
+                                "open_from": "11:00",
+                                "open_to": "15:00"
+                            }
+                        ],
+                        "carrier": {
+                            "name": "Royal Mail",
+                            "logo": "https://example.cloudfront.net/images/royal_mail.svg"
+                        }
+                    }
+                ]
+            }
